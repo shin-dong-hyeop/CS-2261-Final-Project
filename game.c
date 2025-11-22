@@ -64,17 +64,19 @@ void updatePlayer() {
     int bottomY = player.y + player.height - 1;
 
     // ---- Horizontal  ----
+    int feetY = bottomY - 1; // keep wall checks just above the floor to avoid snagging
+
     if (BUTTON_HELD(BUTTON_LEFT) && player.x > 0 &&
-        goThrough(leftX - 1, topY, level) && goThrough(leftX - 1, bottomY, level)) {
+        goThrough(leftX - 1, topY, level) && goThrough(leftX - 1, feetY, level)) {
         mgba_printf("Left button held");
-        player.x--; 
-        player.isAnimating = 1; 
+        player.x--;
+        player.isAnimating = 1;
         player.direction = LEFT;
     }
     if (BUTTON_HELD(BUTTON_RIGHT) && (player.x + player.width) < MAPWIDTH &&
-        goThrough(rightX + 1, topY, level) && goThrough(rightX + 1, bottomY, level)) {
-        player.x++; 
-        player.isAnimating = 1; 
+        goThrough(rightX + 1, topY, level) && goThrough(rightX + 1, feetY, level)) {
+        player.x++;
+        player.isAnimating = 1;
         player.direction = RIGHT;
     }
 
@@ -90,7 +92,7 @@ void updatePlayer() {
 
     // ---- Jump (impulse only) ----
     if (BUTTON_PRESSED(BUTTON_A) && (player.jumpCount < player.maxJumps)) {
-        player.dy = -SHIFTUP(4);   // upward impulse in 8.8 fixed-point
+        player.dy = -SHIFTUP(6);   // stronger upward impulse for higher jumps
         player.jumpCount++;
         player.grounded = 0;
     }
