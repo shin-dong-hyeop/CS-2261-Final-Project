@@ -92,7 +92,7 @@ void updatePlayer() {
 
     // ---- Jump (impulse only) ----
     if (BUTTON_PRESSED(BUTTON_A) && (player.jumpCount < player.maxJumps)) {
-        player.dy = -SHIFTUP(4);   // upward impulse in 8.8 fixed-point
+        player.dy = -SHIFTUP(6);   // stronger upward impulse for higher jumps
         player.jumpCount++;
         player.grounded = 0;
     }
