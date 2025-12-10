@@ -9,19 +9,13 @@
 #include <stdlib.h>
 #include "helper.h"
 
-// Map dimensions match the collision bitmaps (64x32 tiles => 512x256 px).
 #define MAPWIDTH  512
-#define MAPHEIGHT 256
+#define MAPHEIGHT 160
 
-// ---- Fixed-point helpers & physics ----
-#define SHIFTUP(n)   ((n) << 8)
+#define GRAVITY 100
+#define SHIFTUP(n) ((n) << 8)
 #define SHIFTDOWN(n) ((n) >> 8)
-#define GRAVITY            SHIFTUP(1)     // 1 px/frame^2 (8.8 fixed-point)
-#define TERMINALVELOCITY   SHIFTUP(10)    // max fall speed
-
-// Polish
-#define COYOTE_FRAMES       6             // jump grace after stepping off
-#define JUMP_BUFFER_FRAMES  6             // store quick A taps
+#define TERMINALVELOCITY SHIFTUP(10) 
 
 int hOff;
 int vOff;
@@ -50,24 +44,15 @@ static int findGroundY(int x) {
     return 0;
 }
 
+// player: initialize, update, draw
 void initializePlayer() {
-    player.width = 32;
-    player.height = 32;
-    // Different maps have different spawn platforms; drop the player onto the
-    // first safe ledge for that level instead of reusing the game 1 spawn.
-    switch (level) {
-    case 3:
-        player.x = 24;
-        break;
-    default:        // Levels 1 & 2 both start on the far-left ledge
-        player.x = 8;
-        break;
-    }
-
-    player.y = findGroundY(player.x);
+    player.x = 8;
+    player.y = 78;
     player.currentFrame = 0;
     player.direction = RIGHT;
     player.oamIndex = 0;
+    player.width = 32;
+    player.height = 32;
     player.isAnimating = 0;
     player.numFrames = 4;
     player.timeUntilNextFrame = 15;
@@ -86,82 +71,85 @@ void updatePlayer() {
     int rightX  = player.x + player.width - 11;
     int topY    = player.y;
     int bottomY = player.y + player.height - 1;
-
-    int feetY = bottomY - 1; // keep wall checks just above the floor to avoid snagging
-
-    // ---- Horizontal  ----
-
-    if (BUTTON_HELD(BUTTON_LEFT) && player.x > 0 &&
-        goThrough(leftX - 1, topY, level) && goThrough(leftX - 1, feetY, level)) {
-        mgba_printf("Left button held");
+    
+    // collision map helper function
+    if (BUTTON_HELD(BUTTON_LEFT) && player.x > 0 && goThrough(leftX - 1, topY, level) &&
+        goThrough(leftX - 1, bottomY, level)) {
         player.x--;
         player.isAnimating = 1;
         player.direction = LEFT;
+
     }
-    if (BUTTON_HELD(BUTTON_RIGHT) && (player.x + player.width) < MAPWIDTH &&
-        goThrough(rightX + 1, topY, level) && goThrough(rightX + 1, feetY, level)) {
+    if (BUTTON_HELD(BUTTON_RIGHT) && ((player.x + player.width) < MAPWIDTH) && goThrough(rightX + 1, topY, level) &&
+        goThrough(rightX + 1, bottomY, level)){
         player.x++;
         player.isAnimating = 1;
         player.direction = RIGHT;
+
     }
 
-    // ---- Ground check ----
     int onGround = !goThrough(leftX, bottomY + 1, level) || !goThrough(rightX, bottomY + 1, level);
+
     if (onGround) {
         player.grounded = 1;
         player.dy = 0;
-        player.jumpCount = 0;
+        player.jumpCount = 0; // Reset jump count on landing
     } else {
         player.grounded = 0;
     }
 
-    // ---- Jump (impulse only) ----
+    // Handle jumping
     if (BUTTON_PRESSED(BUTTON_A) && (player.jumpCount < player.maxJumps)) {
-        player.dy = -SHIFTUP(8);  
+        player.dy = SHIFTUP(-4); // Adjust jump strength
         player.jumpCount++;
         player.grounded = 0;
     }
 
-    // ---- GRAVITY MUST RUN EVERY FRAME ----
+    // Normal gravity and jump behavior
     player.dy += GRAVITY;
-    if (player.dy > TERMINALVELOCITY) player.dy = TERMINALVELOCITY;
+    if (player.dy > TERMINALVELOCITY) {
+        player.dy = TERMINALVELOCITY;
+    }
 
-    // ---- Vertical stepping (per-pixel) ----
     int steps = abs(SHIFTDOWN(player.dy));
-    int direction = (player.dy > 0) ? 1 : (player.dy < 0 ? -1 : 0);
+    int direction;
 
-    for (int i = 0; i < steps && direction != 0; i++) {
+    if (player.dy > 0) {
+        direction = 1;
+    } else {
+        direction = -1;
+    }
+
+    for (int i = 0; i < steps; i++) {
         int nextY = player.y + direction;
         int nextBottomY = nextY + player.height - 1;
 
         if (!goThrough(leftX, nextBottomY, level) || !goThrough(rightX, nextBottomY, level)) {
             player.dy = 0;
-            if (direction > 0) {        // landed
+
+            if (direction > 0) {
                 player.grounded = 1;
                 player.jumpCount = 0;
             }
+
             break;
         } else {
             player.y = nextY;
-
-            // death/water check
+            //check if the player touches the water
             if (checkCollisionLose(player.x, player.y)) {
                 lives--;
-                if (lives <= 0) { goToLose(); } else { initializePlayer(); }
+                if (lives <= 0) {
+                    goToLose();
+                } else {
+                    initializePlayer();
+                }
                 return;
             }
         }
     }
 
-    // Catch hazard overlaps even if the player stayed level this frame
-    if (checkCollisionLose(player.x, player.y)) {
-        lives--;
-        if (lives <= 0) { goToLose(); } else { initializePlayer(); }
-        return;
-    }
 
-
-    // ---- Animation & camera (unchanged) ----
+    // Animation frame update
     if (player.isAnimating) {
         --player.timeUntilNextFrame;
         if (player.timeUntilNextFrame <= 0) {
@@ -172,9 +160,11 @@ void updatePlayer() {
         player.currentFrame = 0;
     }
 
+    // Camera offset
     hOff = player.x - (SCREENWIDTH - player.width) / 2;
     vOff = player.y - (SCREENHEIGHT - player.height) / 2;
 
+    // Clamp positions
     if (player.x < 0) player.x = 0;
     if (player.y < 0) player.y = 0;
     if (player.x + player.width > MAPWIDTH) player.x = MAPWIDTH - player.width;
@@ -183,6 +173,7 @@ void updatePlayer() {
     if (vOff < 0) vOff = 0;
     if (hOff > MAPWIDTH - SCREENWIDTH) hOff = MAPWIDTH - SCREENWIDTH;
     if (vOff > MAPHEIGHT - SCREENHEIGHT) vOff = MAPHEIGHT - SCREENHEIGHT;
+
 }
 
 
@@ -287,9 +278,16 @@ void drawCollection() {
 }
 
 int winCondition() {
-    if (level == 1 && checkCollisionSprite(player, banana)) { goToGame2(); return 1; }
-    else if (level == 2 && checkCollisionSprite(player, bear)) { goToGame3(); return 1; }
-    else if (level == 3 && checkCollisionSprite(player, crown)) { goToWin(); return 1; }
+    if (level == 1 && checkCollisionPetSprite(player, banana)) {
+        goToGame2();
+        return 1;
+    } else if (level == 2 && checkCollisionPetSprite(player, bear)) {
+        goToGame3();
+        return 1;
+    } else if (level == 3 && checkCollisionPetSprite(player, crown)) {
+        goToWin();
+        return 1;
+    }
     return 0;
 }
 

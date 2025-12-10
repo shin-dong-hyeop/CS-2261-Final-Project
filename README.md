@@ -1,6 +1,4 @@
-# M01 – First Playable (CS 2261)
-
-**Project:** [Your Game Title Here]  
+**Project:**   
 **Author:** Donghyeop Shin
 
 ## What’s finished (M01)
