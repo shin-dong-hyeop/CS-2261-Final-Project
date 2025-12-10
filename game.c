@@ -9,8 +9,9 @@
 #include <stdlib.h>
 #include "helper.h"
 
+// Map dimensions match the collision bitmaps (64x32 tiles => 512x256 px).
 #define MAPWIDTH  512
-#define MAPHEIGHT 160
+#define MAPHEIGHT 256
 
 // ---- Fixed-point helpers & physics ----
 #define SHIFTUP(n)   ((n) << 8)
@@ -36,14 +37,37 @@ SPRITE bear;
 SPRITE crown;
 
 // -------- Player: initialize, update, draw --------
+static int findGroundY(int x) {
+    // Find the first empty pixel with solid ground directly beneath it, then
+    // place the player's feet on that ledge. The collision maps use palette
+    // index 0 for solid tiles.
+    for (int y = 0; y < MAPHEIGHT - 1; y++) {
+        if (colorAt(x, y) != 0 && colorAt(x, y + 1) == 0) {
+            int groundedY = y - (player.height - 1);
+            return groundedY < 0 ? 0 : groundedY;
+        }
+    }
+    return 0;
+}
+
 void initializePlayer() {
-    player.x = 8;
-    player.y = 90;
+    player.width = 32;
+    player.height = 32;
+    // Different maps have different spawn platforms; drop the player onto the
+    // first safe ledge for that level instead of reusing the game 1 spawn.
+    switch (level) {
+    case 3:
+        player.x = 24;
+        break;
+    default:        // Levels 1 & 2 both start on the far-left ledge
+        player.x = 8;
+        break;
+    }
+
+    player.y = findGroundY(player.x);
     player.currentFrame = 0;
     player.direction = RIGHT;
     player.oamIndex = 0;
-    player.width = 32;
-    player.height = 32;
     player.isAnimating = 0;
     player.numFrames = 4;
     player.timeUntilNextFrame = 15;
@@ -63,10 +87,9 @@ void updatePlayer() {
     int topY    = player.y;
     int bottomY = player.y + player.height - 1;
 
-    int feetY = bottomY - 1;
+    int feetY = bottomY - 1; // keep wall checks just above the floor to avoid snagging
 
     // ---- Horizontal  ----
-    int feetY = bottomY - 1; // keep wall checks just above the floor to avoid snagging
 
     if (BUTTON_HELD(BUTTON_LEFT) && player.x > 0 &&
         goThrough(leftX - 1, topY, level) && goThrough(leftX - 1, feetY, level)) {
