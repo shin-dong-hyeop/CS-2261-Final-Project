@@ -55,10 +55,13 @@ void initializePlayer() {
     // Different maps have different spawn platforms; drop the player onto the
     // first safe ledge for that level instead of reusing the game 1 spawn.
     switch (level) {
+    case 2:
+        player.x = 112;
+        break;
     case 3:
         player.x = 24;
         break;
-    default:        // Levels 1 & 2 both start on the far-left ledge
+    default:
         player.x = 8;
         break;
     }
@@ -291,3 +294,4 @@ int winCondition() {
     else if (level == 3 && checkCollisionSprite(player, crown)) { goToWin(); return 1; }
     return 0;
 }
+
