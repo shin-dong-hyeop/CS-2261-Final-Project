@@ -37,6 +37,7 @@ void goToLose();
 void lose();
 void goToWin();
 void win();
+void reportHud();
 
 
 enum {START, INSTRUCTIONS, GAME1, GAME2, GAME3, PAUSE, WIN, LOSE};
@@ -49,6 +50,8 @@ extern int level;
 extern int hOff;
 extern int vOff;
 extern SPRITE player;
+static int reportedLevel = -1;
+static int reportedLives = -1;
 
 unsigned short oldButtons;
 unsigned short buttons;
@@ -162,6 +165,7 @@ void goToGame1() {
 void game1() {
     updateGame1();
     drawGame1();
+    reportHud();
     waitForVBlank();
     hOff = savedHOff;
     vOff = savedVOff;
@@ -172,7 +176,7 @@ void game1() {
 }
 
 void goToGame2() {
-    DMANow(3, map2Map, &SCREENBLOCK[20], map2Len / 2);
+    DMANow(3, map2Map, &SCREENBLOCK[20], map2MapLen / 2);
     //DMANow(3, background1Map, &SCREENBLOCK[28], background1Len / 2);
     DMANow(3, tilesetPal, BG_PALETTE, tilesetPalLen / 2);
     DMANow(3, tilesetTiles, &CHARBLOCK[0], tilesetTilesLen / 2);
@@ -188,6 +192,7 @@ void goToGame2() {
 void game2() {
     updateGame2();
     drawGame2();
+    reportHud();
     waitForVBlank();
 
     if (BUTTON_PRESSED(BUTTON_START)) {
@@ -212,6 +217,7 @@ void goToGame3() {
 void game3() {
     updateGame3();
     drawGame3();
+    reportHud();
     waitForVBlank();
 
     if (BUTTON_PRESSED(BUTTON_START)) {
@@ -291,5 +297,13 @@ void win() {
     
     if (BUTTON_PRESSED(BUTTON_SELECT)) {
             goToStart();
+    }
+}
+
+void reportHud() {
+    if (reportedLevel != level || reportedLives != lives) {
+        mgba_printf("Level: %d  Lives: %d", level, lives);
+        reportedLevel = level;
+        reportedLives = lives;
     }
 }

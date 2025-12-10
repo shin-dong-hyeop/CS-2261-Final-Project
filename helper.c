@@ -43,10 +43,6 @@ unsigned char colorAt(int x, int y) {
 int goThrough(int x, int y, int level) {
     (void)level; // unused parameter
 
-    // Collision map palette:
-    //   0 = solid ground, 1 = open air, 2 = hazard (water/spikes)
-    // Only solid ground should block movement, while air and hazards remain passable
-    // so that the player can fall or walk into them (hazards are handled elsewhere).
     if (x < 0 || x >= COLLISIONWIDTH || y < 0 || y >= COLLISIONHEIGHT) return 0;
 
     unsigned char tile = colorAt(x, y);
@@ -82,10 +78,22 @@ int checkCollisionTransparentBlock(int x, int y) {
 
 
 int checkCollisionLose(int x, int y) {
-    return ((getTile(x, y) == 0x0002) ||
-           (getTile(x + 8 - 1, y) == 0x0002) ||
-           (getTile(x, y + 8 - 1) == 0x0002) ||
-           (getTile(x + 8 - 1, y + 8 - 1) == 0x0002));
+    // Check all four corners of the player's bounding box against hazard pixels
+    // on the collision map (palette index 2). Using the collision map keeps
+    // detection aligned with the solid/air layout instead of the visual
+    // tilemap, preventing false positives while walking on normal ground.
+    int left = x;
+    int right = x + player.width - 1;
+    int top = y;
+    int bottom = y + player.height - 1;
+
+    // Outside the collision map shouldn't be treated as a hazard.
+    if (left < 0 || right >= COLLISIONWIDTH || top < 0 || bottom >= COLLISIONHEIGHT) return 0;
+
+    return (colorAt(left, top) == 2) ||
+           (colorAt(right, top) == 2) ||
+           (colorAt(left, bottom) == 2) ||
+           (colorAt(right, bottom) == 2);
 }
 
 

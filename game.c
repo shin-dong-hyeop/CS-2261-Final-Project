@@ -63,6 +63,8 @@ void updatePlayer() {
     int topY    = player.y;
     int bottomY = player.y + player.height - 1;
 
+    int feetY = bottomY - 1;
+
     // ---- Horizontal  ----
     int feetY = bottomY - 1; // keep wall checks just above the floor to avoid snagging
 
@@ -92,7 +94,7 @@ void updatePlayer() {
 
     // ---- Jump (impulse only) ----
     if (BUTTON_PRESSED(BUTTON_A) && (player.jumpCount < player.maxJumps)) {
-        player.dy = -SHIFTUP(6);   // stronger upward impulse for higher jumps
+        player.dy = -SHIFTUP(8);  
         player.jumpCount++;
         player.grounded = 0;
     }
@@ -127,6 +129,14 @@ void updatePlayer() {
             }
         }
     }
+
+    // Catch hazard overlaps even if the player stayed level this frame
+    if (checkCollisionLose(player.x, player.y)) {
+        lives--;
+        if (lives <= 0) { goToLose(); } else { initializePlayer(); }
+        return;
+    }
+
 
     // ---- Animation & camera (unchanged) ----
     if (player.isAnimating) {
