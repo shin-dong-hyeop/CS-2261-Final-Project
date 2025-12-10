@@ -9,8 +9,9 @@
 #include <stdlib.h>
 #include "helper.h"
 
+// Map dimensions match the collision bitmaps (64x32 tiles => 512x256 px).
 #define MAPWIDTH  512
-#define MAPHEIGHT 160
+#define MAPHEIGHT 256
 
 // ---- Fixed-point helpers & physics ----
 #define SHIFTUP(n)   ((n) << 8)
@@ -55,13 +56,10 @@ void initializePlayer() {
     // Different maps have different spawn platforms; drop the player onto the
     // first safe ledge for that level instead of reusing the game 1 spawn.
     switch (level) {
-    case 2:
-        player.x = 112;
-        break;
     case 3:
         player.x = 24;
         break;
-    default:
+    default:        // Levels 1 & 2 both start on the far-left ledge
         player.x = 8;
         break;
     }
