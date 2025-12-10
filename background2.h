@@ -4,11 +4,12 @@
 //======================================================================
 //
 //	background2, 512x256@4, 
-//	+ palette 256 entries, not compressed
-//	+ bitmap not compressed
-//	Total size: 512 + 65536 = 66048
+//	+ palette 16 entries, not compressed
+//	+ 776 tiles (t|f|p reduced) not compressed
+//	+ regular map (in SBBs), not compressed, 64x32 
+//	Total size: 32 + 24832 + 4096 = 28960
 //
-//	Time-stamp: 2025-11-04, 22:47:47
+//	Time-stamp: 2025-04-30, 04:58:08
 //	Exported by Cearn's GBA Image Transmogrifier, v0.8.3
 //	( http://www.coranac.com/projects/#grit )
 //
@@ -17,11 +18,14 @@
 #ifndef GRIT_BACKGROUND2_H
 #define GRIT_BACKGROUND2_H
 
-#define background2BitmapLen 65536
-extern const unsigned short background2Bitmap[32768];
+#define background2TilesLen 24832
+extern const unsigned short background2Tiles[12416];
 
-#define background2PalLen 512
-extern const unsigned short background2Pal[256];
+#define background2MapLen 4096
+extern const unsigned short background2Map[2048];
+
+#define background2PalLen 32
+extern const unsigned short background2Pal[16];
 
 #endif // GRIT_BACKGROUND2_H
 

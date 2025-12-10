@@ -11,18 +11,18 @@
 #include "background1.h"
 #include "background2.h"
 #include "background3.h"
-// #include "game.h"
+#include "game.h"
 #include "start.h"
 #include "instruction.h"
 #include "pause.h"
 #include "lose.h"
 #include "win.h"
-//#include "digitalSound.h"
-//#include "startMusic.h"
-//#include "game1Music.h"
-//#include "game2Music.h"
-//#include "game3Music.h"
-//#include "winMusic.h"
+#include "digitalSound.h"
+#include "startMusic.h"
+#include "game1Music.h"
+#include "game2Music.h"
+#include "game3Music.h"
+#include "winMusic.h"
 
 OBJ_ATTR shadowOAM[128];
 
@@ -56,7 +56,6 @@ int vOff = 0;
 int savedHOff = 0;
 int savedVOff = 0;
 extern int level;
-SPRITE player;
 
 unsigned short oldButtons;
 unsigned short buttons;
@@ -190,7 +189,7 @@ void goToGame1() {
     if (!paused) {
         level = 1;
         initializePlayer();
-        initializePet1();
+        initializeBanana();
         playSoundA(game1Music_data, game1Music_length, 1);
     }
 }
@@ -231,7 +230,7 @@ void goToGame2() {
     if (!paused) {
         level = 2;
         initializePlayer();
-        initializePet2();
+        initializeBear();
         playSoundA(game2Music_data, game2Music_length, 1);
     }
     state = GAME2;
@@ -261,18 +260,18 @@ void goToGame3() {
     REG_DISPCTL = BG_ENABLE(0) | BG_ENABLE(1) | SPRITE_ENABLE;
 
     waitForVBlank();
-    DMANow(3, background3Pal, BG_PALETTE, 256);
-    DMANow(3, background3Tiles, &CHARBLOCK[0], background3TilesLen / 2);
-    DMANow(3, background3Map, &SCREENBLOCK[28], background3MapLen / 2);
+    DMANow(3, background2Pal, BG_PALETTE, 256);
+    DMANow(3, background2Tiles, &CHARBLOCK[0], background2TilesLen / 2);
+    DMANow(3, background2Map, &SCREENBLOCK[28], background2MapLen / 2);
     
     // DMANow(3, bgGameFrontPal, PALETTE, 256);
-    DMANow(3, map3Tiles, &CHARBLOCK[1], map3TilesLen / 2);
-    DMANow(3, map3Map, &SCREENBLOCK[30], map3MapLen / 2);
+    DMANow(3, map2Tiles, &CHARBLOCK[1], map2TilesLen / 2);
+    DMANow(3, map2Map, &SCREENBLOCK[30], map2MapLen / 2);
 
     if (!paused) {
         level = 3;
         initializePlayer();
-        initializePet3();
+        initializeCrown();
         playSoundA(game3Music_data, game3Music_length, 1);
     }
     state = GAME3;
