@@ -89,8 +89,6 @@ void updatePlayer() {
     int topY    = player.y;
     int bottomY = player.y + player.height - 1;
 
-    int feetY = bottomY - 1;
-
     // ---- Horizontal  ----
     int feetY = bottomY - 1; // keep wall checks just above the floor to avoid snagging
 
