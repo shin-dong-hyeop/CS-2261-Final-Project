@@ -292,3 +292,4 @@ int winCondition() {
     else if (level == 3 && checkCollisionSprite(player, crown)) { goToWin(); return 1; }
     return 0;
 }
+
