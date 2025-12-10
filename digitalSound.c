@@ -1,6 +1,9 @@
 #include "gba.h"
 #include "digitalSound.h"
 
+SOUND soundA;
+SOUND soundB;
+
 void setupSounds() {
 
     setupSoundInterrupts();

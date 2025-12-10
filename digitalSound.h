@@ -1,6 +1,8 @@
 #ifndef SOUND_H
 #define SOUND_H
 
+#include "gba.h"
+
 void setupSounds();
 void setupSoundInterrupts();
 void interruptHandler();
@@ -58,7 +60,7 @@ typedef struct{
     int vBlankCount;
 } SOUND;
 
-SOUND soundA;
-SOUND soundB;
+extern SOUND soundA;
+extern SOUND soundB;
 
 #endif
