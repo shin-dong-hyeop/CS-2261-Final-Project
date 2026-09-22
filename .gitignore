@@ -1,0 +1,11 @@
+# Compiler output
+*.o
+*.i
+*.s
+*.d
+*.elf
+*.gba
+
+# Emulator and operating-system state
+*.sav
+.DS_Store
